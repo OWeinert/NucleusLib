@@ -11,14 +11,14 @@ import java.util.regex.Pattern;
 
 public class Formula {
 
-    private Map<Element, Integer> elements;
+    private final Map<Element, Integer> ELEMENTS;
 
     public Formula(Map<Element, Integer> elements) {
-        this.elements = elements;
+        ELEMENTS = elements;
     }
 
 
-    public static Formula fromString(String formulaString) {
+    public static Formula of(String formulaString) {
         if(NucleusResourceReloader.ELEMENTS_INSTANCE.finished()) {
             Map<Element, Integer> elements = new HashMap<Element, Integer>();
 
@@ -54,7 +54,7 @@ public class Formula {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        for(Map.Entry<Element, Integer> entry : this.elements.entrySet()) {
+        for(Map.Entry<Element, Integer> entry : this.ELEMENTS.entrySet()) {
             sb.append(entry.getKey().SYMBOL).append(entry.getValue());
         }
         return sb.toString();
