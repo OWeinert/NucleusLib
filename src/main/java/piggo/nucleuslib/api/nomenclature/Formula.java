@@ -2,7 +2,7 @@ package piggo.nucleuslib.api.nomenclature;
 
 import piggo.nucleuslib.NucleusLib;
 import piggo.nucleuslib.api.chem.Element;
-import piggo.nucleuslib.api.data.NucleusResourceReloader;
+import piggo.nucleuslib.api.resource.NucleusResourceReloader;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -9,7 +9,7 @@ import net.minecraft.resource.ResourceType;
 import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import piggo.nucleuslib.api.data.NucleusResourceReloader;
+import piggo.nucleuslib.api.resource.NucleusResourceReloader;
 import piggo.nucleuslib.util.ItemUtils;
 
 public class NucleusLib implements ModInitializer {

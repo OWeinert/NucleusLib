@@ -1,4 +1,4 @@
-package piggo.nucleuslib.api.data;
+package piggo.nucleuslib.api.resource;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.*;
