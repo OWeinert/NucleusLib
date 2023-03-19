@@ -36,6 +36,7 @@ public final class NucleusResourceReloader<T extends Chemical> extends SinglePre
             .build();
     public static final NucleusResourceReloader<Compound> COMPOUNDS_INSTANCE = new NucleusResourceReloaderBuilder<>(Compound.class)
             .AddJsonDeserializer(Compound.class, new Compound.Deserializer())
+            .withDependencies(new Identifier(NucleusLib.MODID, "elements"))
             .build();
 
     private final Gson GSON;
@@ -129,8 +130,8 @@ public final class NucleusResourceReloader<T extends Chemical> extends SinglePre
             }
         }
         finished = true;
-        NucleusLib.LOGGER.info("Loaded and registered " + loadedData.size() + " " + STARTING_DIRECTORY);
         NucleusResourceReloaderEvents.RESOURCE_TYPE_LOADED.invoker().onResourceTypeLoaded(this, TYPE);
+        NucleusLib.LOGGER.info("Loaded and registered " + loadedData.size() + " " + STARTING_DIRECTORY);
     }
     
     public static ImmutableList<NucleusResourceReloader<?>> reloadListeners() {
