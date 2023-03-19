@@ -5,5 +5,10 @@
   "group": 1,
   "period": 1,
   "matterState": "Gas",
-  "molecularWeight": 1.008
+  "molecularWeight": 1.008,
+  "subAtomicConfiguration": {
+    "protons": 1,
+    "neutrons": 0,
+    "electrons": 1
+  }
 }
