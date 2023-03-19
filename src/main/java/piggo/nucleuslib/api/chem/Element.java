@@ -1,7 +1,6 @@
 package piggo.nucleuslib.api.chem;
 
 import com.google.gson.*;
-import piggo.nucleuslib.api.chem.subatomic.SubAtomicConfiguration;
 import piggo.nucleuslib.api.item.ChemicalItem;
 
 import java.lang.reflect.Type;
@@ -12,9 +11,7 @@ public class Element extends Chemical {
     public final int ATOMIC_NUMBER;
     public final int GROUP;
     public final int PERIOD;
-
-    // TODO: fully implement SubAtomicConfiguration
-    //public SubAtomicConfiguration subAtomicConfiguration;
+    private SubAtomicConfiguration subAtomicConfiguration;
 
     private final ChemicalItem ITEM = new ChemicalItem(this);
 
@@ -30,12 +27,19 @@ public class Element extends Chemical {
         this.ATOMIC_NUMBER = atomicNumber;
         this.GROUP = group;
         this.PERIOD = period;
-
     }
 
     public Element(ElementSettings settings) {
         this(settings.getName(), settings.getSymbol(), settings.getDescription(), settings.getAtomicNumber(), settings.getGroup(), settings.getPeriod(),
                 settings.getMatterState(), settings.getMolecularWeight(), settings.isRadioactive(), settings.isMetallic());
+    }
+
+    public void addSubAtomicConfiguration(SubAtomicConfiguration configuration) {
+        subAtomicConfiguration = configuration;
+    }
+
+    public SubAtomicConfiguration getSubAtomicConfiguration() {
+        return subAtomicConfiguration;
     }
 
     @Override
@@ -59,7 +63,7 @@ public class Element extends Chemical {
             JsonElement radioactive = jsonObject.get("radioactive");
             JsonElement metallic = jsonObject.get("metallic");
 
-            return new Element(
+            Element element = new Element(
                     name == null ? "" : name.getAsString(),
                     symbol == null? "" : symbol.getAsString(),
                     description == null ? "" : description.getAsString(),
@@ -70,6 +74,22 @@ public class Element extends Chemical {
                     molecularWeight == null ? 0.0f : molecularWeight.getAsFloat(),
                     radioactive != null && radioactive.getAsBoolean(),
                     metallic != null && metallic.getAsBoolean());
+
+            SubAtomicConfiguration sAConfig;
+            JsonObject sAConfigJson = jsonObject.getAsJsonObject("subAtomicConfiguration");
+            if(sAConfigJson != null ) {
+                JsonElement protons = sAConfigJson.get("protons");
+                JsonElement neutrons = sAConfigJson.get("neutrons");
+                JsonElement electrons = sAConfigJson.get("electrons");
+
+                element.addSubAtomicConfiguration(new SubAtomicConfiguration(
+                        protons != null ? protons.getAsInt() : 0,
+                        neutrons != null ? neutrons.getAsInt() : 0,
+                        electrons != null ? electrons.getAsInt() : 0
+                ));
+            }
+
+            return element;
         }
     }
 }
