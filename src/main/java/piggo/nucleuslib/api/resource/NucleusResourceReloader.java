@@ -1,5 +1,6 @@
 package piggo.nucleuslib.api.resource;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.*;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
@@ -18,7 +19,8 @@ import piggo.nucleuslib.NucleusLib;
 import piggo.nucleuslib.api.chem.Chemical;
 import piggo.nucleuslib.api.chem.Compound;
 import piggo.nucleuslib.api.chem.Element;
-import piggo.nucleuslib.mixin.SimpleRegistryAccessor;
+import piggo.nucleuslib.api.events.NucleusResourceReloaderEvents;
+import piggo.nucleuslib.util.RegistryUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,12 +29,13 @@ import java.util.function.Function;
 
 public final class NucleusResourceReloader<T extends Chemical> extends SinglePreparationResourceReloader<Map<Identifier, T>> implements IdentifiableResourceReloadListener {
 
+    private static List<NucleusResourceReloader<?>> nucleusResourceReloaders = new ArrayList<>();
+
     public static final NucleusResourceReloader<Element> ELEMENTS_INSTANCE = new NucleusResourceReloaderBuilder<>(Element.class)
             .AddJsonDeserializer(Element.class, new Element.Deserializer())
             .build();
     public static final NucleusResourceReloader<Compound> COMPOUNDS_INSTANCE = new NucleusResourceReloaderBuilder<>(Compound.class)
             .AddJsonDeserializer(Compound.class, new Compound.Deserializer())
-            .withDependencies(new Identifier(NucleusLib.MODID, "elements"))
             .build();
 
     private final Gson GSON;
@@ -45,6 +48,8 @@ public final class NucleusResourceReloader<T extends Chemical> extends SinglePre
     public NucleusResourceReloader(Class<T> type, @Nullable Function<GsonBuilder, GsonBuilder> gsonBuilderInject, Collection<Identifier> fabricDependencies) {
         this.TYPE = type;
         STARTING_DIRECTORY = type.getSimpleName().toLowerCase() + "s";
+        FABRIC_DEPENDENCIES = fabricDependencies;
+        
         GsonBuilder gsonBuilder = (new GsonBuilder())
                 .setPrettyPrinting()
                 .disableHtmlEscaping();
@@ -52,7 +57,11 @@ public final class NucleusResourceReloader<T extends Chemical> extends SinglePre
             gsonBuilder = gsonBuilderInject.apply(gsonBuilder);
         }
         GSON = gsonBuilder.create();
-        FABRIC_DEPENDENCIES = fabricDependencies;
+        
+        if(nucleusResourceReloaders == null) {
+            nucleusResourceReloaders = new ArrayList<>();
+        }
+        nucleusResourceReloaders.add(this);
     }
 
     @Override
@@ -67,20 +76,25 @@ public final class NucleusResourceReloader<T extends Chemical> extends SinglePre
 
     @Override
     protected Map<Identifier, T> prepare(ResourceManager manager, Profiler profiler) {
-        Map<Identifier, T> dataMap = new HashMap<>();
-        Map<Identifier, List<Resource>> resources = manager.findAllResources(STARTING_DIRECTORY, id -> true);
-
+        finished = false;
+        Map<Identifier, T> dataMap = loadedData != null && loadedData.size() > 0 ? loadedData : new HashMap<>();
+        Map<Identifier, List<Resource>> resources = manager.findAllResources(STARTING_DIRECTORY, id -> id.getPath().endsWith(".json"));
         for(Map.Entry<Identifier, List<Resource>> entry : resources.entrySet()) {
             Identifier identifier = entry.getKey();
             try{
                 for(Resource res : entry.getValue()) {
                     try(InputStream stream = res.getInputStream()) {
                         try{
-                            Scanner s = new Scanner(stream).useDelimiter("\\A");
-                            String jsonString = s.hasNext() ? s.next() : "";
-                            unfreezeItemRegistry();
-                            T data = GSON.fromJson(jsonString, TYPE);
-                            dataMap.put(identifier, data);
+                            if(!dataMap.containsKey(identifier)) {
+                                Scanner s = new Scanner(stream).useDelimiter("\\A");
+                                String jsonString = s.hasNext() ? s.next() : "";
+                                RegistryUtils.unfreezeRegistry(Registries.ITEM);
+                                T data = GSON.fromJson(jsonString, TYPE);
+                                dataMap.putIfAbsent(identifier, data);
+                            }
+                            else {
+                                NucleusLib.LOGGER.warn(identifier + " is already loaded. Skipping...");
+                            }
                         }
                         catch(Exception e) {
                             NucleusLib.LOGGER.error("Error occurred while parsing " + res + ".json! ", e);
@@ -98,18 +112,29 @@ public final class NucleusResourceReloader<T extends Chemical> extends SinglePre
             }
         }
         loadedData = dataMap;
-        finished = true;
-        NucleusLib.LOGGER.info("Loaded " + dataMap.size() + " " + STARTING_DIRECTORY);
-        return dataMap;
+        NucleusLib.LOGGER.info("Found " + loadedData.size() + " " + STARTING_DIRECTORY);
+        return loadedData;
     }
 
     @Override
     protected void apply(Map<Identifier, T> prepared, ResourceManager manager, Profiler profiler) {
-        unfreezeItemRegistry();
         for(Map.Entry<Identifier, T> entry : prepared.entrySet()) {
-            CreateAndRegisterContent(entry.getValue(), FilenameUtils.getBaseName(entry.getKey().getPath()));
+            Identifier identifier = new Identifier(NucleusLib.MODID, FilenameUtils.getBaseName(entry.getKey().getPath()));
+            if(!Registries.ITEM.containsId(identifier)) {
+                RegistryUtils.unfreezeRegistry(Registries.ITEM);
+                CreateAndRegisterContent(entry.getValue(), identifier);
+            }
+            else {
+                NucleusLib.LOGGER.warn(identifier + " is already registered. Skipping...");
+            }
         }
-        refreezeItemRegistry();
+        finished = true;
+        NucleusLib.LOGGER.info("Loaded and registered " + loadedData.size() + " " + STARTING_DIRECTORY);
+        NucleusResourceReloaderEvents.RESOURCE_TYPE_LOADED.invoker().onResourceTypeLoaded(this, TYPE);
+    }
+    
+    public static ImmutableList<NucleusResourceReloader<?>> reloadListeners() {
+        return ImmutableList.copyOf(nucleusResourceReloaders);
     }
 
     public boolean finished() {
@@ -120,24 +145,18 @@ public final class NucleusResourceReloader<T extends Chemical> extends SinglePre
         return ImmutableMap.copyOf(loadedData);
     }
 
-    private void CreateAndRegisterContent(T data, String name) {
-        Registry.register(Registries.ITEM, new Identifier(NucleusLib.MODID, name), data.getItem());
-        ItemGroup itemGroup = data instanceof Element ? NucleusLib.ELEMENTS_GROUP : NucleusLib.COMPOUNDS_GROUP;
-        ItemGroupEvents.modifyEntriesEvent(itemGroup).register(content -> content.add(data.getItem()));
-    }
-
-    private void unfreezeItemRegistry() {
-        if(((SimpleRegistryAccessor<?>) Registries.ITEM).getFrozen()) {
-            try {
-                ((SimpleRegistryAccessor<?>)Registries.ITEM).setFrozen(false);
-            } catch(Exception e) {
-                NucleusLib.LOGGER.error("Error while unfreezing Registry!", e);
-                e.printStackTrace();
-            }
+    private void CreateAndRegisterContent(T data, Identifier identifier) {
+        Registry.register(Registries.ITEM, identifier, data.getItem());
+        ItemGroup itemGroup;
+        if(data instanceof Element) {
+            itemGroup = NucleusLib.ELEMENTS_GROUP;
         }
-    }
-
-    private void refreezeItemRegistry() {
-        ((SimpleRegistryAccessor<?>)Registries.ITEM).invokeFreeze();
+        else if(data instanceof Compound){
+            itemGroup = NucleusLib.COMPOUNDS_GROUP;
+        }
+        else {
+            itemGroup = NucleusLib.MISC_GROUP;
+        }
+        ItemGroupEvents.modifyEntriesEvent(itemGroup).register(content -> content.add(data.getItem()));
     }
 }
