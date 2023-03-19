@@ -28,8 +28,10 @@ import java.util.function.Function;
 public final class NucleusResourceReloader<T extends Chemical> extends SinglePreparationResourceReloader<Map<Identifier, T>> implements IdentifiableResourceReloadListener {
 
     public static final NucleusResourceReloader<Element> ELEMENTS_INSTANCE = new NucleusResourceReloaderBuilder<>(Element.class)
+            .AddJsonDeserializer(Element.class, new Element.Deserializer())
             .build();
     public static final NucleusResourceReloader<Compound> COMPOUNDS_INSTANCE = new NucleusResourceReloaderBuilder<>(Compound.class)
+            .AddJsonDeserializer(Compound.class, new Compound.Deserializer())
             .withDependencies(new Identifier(NucleusLib.MODID, "elements"))
             .build();
 
@@ -45,9 +47,7 @@ public final class NucleusResourceReloader<T extends Chemical> extends SinglePre
         STARTING_DIRECTORY = type.getSimpleName().toLowerCase() + "s";
         GsonBuilder gsonBuilder = (new GsonBuilder())
                 .setPrettyPrinting()
-                .disableHtmlEscaping()
-                .registerTypeAdapter(Element.class, new Element.Deserializer())
-                .registerTypeAdapter(Compound.class, new Compound.Deserializer());
+                .disableHtmlEscaping();
         if(gsonBuilderInject != null) {
             gsonBuilder = gsonBuilderInject.apply(gsonBuilder);
         }
