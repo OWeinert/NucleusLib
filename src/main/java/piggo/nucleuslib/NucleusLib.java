@@ -28,7 +28,7 @@ public class NucleusLib implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(NucleusResourceReloader.ELEMENTS_INSTANCE);
-		ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(NucleusResourceReloader.COMPOUNDS_INSTANCE);
+		ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES).registerReloadListener(NucleusResourceReloader.ELEMENTS_INSTANCE);
+		ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES).registerReloadListener(NucleusResourceReloader.COMPOUNDS_INSTANCE);
 	}
 }
