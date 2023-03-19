@@ -37,7 +37,6 @@ public class NucleusResourceReloaderBuilder<T extends Chemical> {
     }
 
     /**
-     *
      * @param filter the ReflectionAccessFilter
      * @return the NucleusResourceReloaderBuilder
      */
