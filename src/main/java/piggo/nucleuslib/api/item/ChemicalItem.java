@@ -1,6 +1,7 @@
 package piggo.nucleuslib.api.item;
 
 import com.google.common.collect.ImmutableList;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.item.TooltipContext;
@@ -19,19 +20,21 @@ import java.util.List;
 public class ChemicalItem extends Item {
 
     private final Chemical CHEMICAL;
-    private final ImmutableList<Text> EXTENDED_TOOLTIP;
+    private ImmutableList<Text> extendedTooltip;
 
     public ChemicalItem(Chemical chemical) {
         super(new FabricItemSettings());
         this.CHEMICAL = chemical;
-        EXTENDED_TOOLTIP = createTooltip();
+        ServerLifecycleEvents.SERVER_STARTED.register(minecraftServer -> {
+            extendedTooltip = createTooltip();
+        });
     }
 
     @Override
     public void appendTooltip(ItemStack stack, World world, List<Text> tooltip, TooltipContext context) {
         super.appendTooltip(stack, world, tooltip, context);
         if(InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow().getHandle(), InputUtil.GLFW_KEY_LEFT_SHIFT)) {
-            tooltip.addAll(EXTENDED_TOOLTIP);
+            tooltip.addAll(extendedTooltip);
         }
         else {
             tooltip.add(Text.translatable("internal.nucleuslib.tooltip_base", "L Shift"));
