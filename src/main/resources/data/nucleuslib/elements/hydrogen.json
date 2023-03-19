@@ -1,0 +1,9 @@
+{
+  "name": "Hydrogen",
+  "symbol": "H",
+  "atomicNumber": 1,
+  "group": 1,
+  "period": 1,
+  "matterState": "Gas",
+  "molecularWeight": 1
+}

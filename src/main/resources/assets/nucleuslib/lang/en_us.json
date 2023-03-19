@@ -1,0 +1,18 @@
+{
+    "item.nucleuslib.hydrogen": "Hydrogen",
+    "item.nucleuslib.helium" :  "Helium",
+
+    "internal.nucleuslib.tooltip_base": "Press %s to expand",
+    "internal.nucleuslib.tooltip_field.description" : "Description",
+    "internal.nucleuslib.tooltip_field.matter_state" : "Matter State",
+    "internal.nucleuslib.tooltip_field.molecular_weight" : "Molecular Weight",
+    "internal.nucleuslib.tooltip_field.radioactive" : "Radioactive",
+    "internal.nucleuslib.tooltip_field.metallic" : "Metallic",
+    "internal.nucleuslib.tooltip_field.formulaString" : "Formula",
+    "internal.nucleuslib.tooltip_field.symbol" : "Symbol",
+    "internal.nucleuslib.tooltip_field.atomic_number" : "Atomic Number",
+    "internal.nucleuslib.tooltip_field.group" : "Group",
+    "internal.nucleuslib.tooltip_field.period" : "Period",
+    "internal.nucleuslib.tooltip_field.subatomicconfiguration" : "NOT YET IMPLEMENTED"
+
+}
