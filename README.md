@@ -1,9 +1,11 @@
-# Fabric Example Mod
+# NucleusLib
 
-## Setup
+A Minecraft Fabric Library for Data-Driven Implementation of Chemical Elements and Compounds.
 
-For setup instructions please see the [fabric wiki page](https://fabricmc.net/wiki/tutorial:setup) that relates to the IDE that you are using.
+# Maven implementation
 
-## License
+## W.I.P
 
-This template is available under the CC0 license. Feel free to learn from it and incorporate it in your own projects.
+# Documentation
+
+Click [here](https://github.com/Piggo41/NucleusLib/wiki) to find out how to create Elements and Compounds and even more
