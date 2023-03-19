@@ -13,7 +13,7 @@ public class Element extends Chemical {
     public final int PERIOD;
     private SubAtomicConfiguration subAtomicConfiguration;
 
-    private final ChemicalItem ITEM = new ChemicalItem(this);
+    private final ChemicalItem ITEM;
 
     public Element(String name, String symbol, Integer atomicNumber, Integer group, Integer period, MatterState matterState,
                    Float molecularWeight, Boolean isMetallic) {
@@ -23,10 +23,11 @@ public class Element extends Chemical {
     public Element(String name, String symbol, String description, Integer atomicNumber, Integer group, Integer period,
                    MatterState matterState, Float molecularWeight, Boolean isRadioactive, Boolean isMetallic) {
         super(name, description, matterState, molecularWeight, isRadioactive, isMetallic);
-        this.SYMBOL = symbol;
-        this.ATOMIC_NUMBER = atomicNumber;
-        this.GROUP = group;
-        this.PERIOD = period;
+        SYMBOL = symbol;
+        ATOMIC_NUMBER = atomicNumber;
+        GROUP = group;
+        PERIOD = period;
+        ITEM = new ChemicalItem(this);
     }
 
     public Element(ElementSettings settings) {

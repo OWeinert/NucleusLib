@@ -1,27 +1,39 @@
 package piggo.nucleuslib.api.chem;
 
 import com.google.gson.*;
+import piggo.nucleuslib.api.events.NucleusResourceReloaderEvents;
 import piggo.nucleuslib.api.item.ChemicalItem;
 import piggo.nucleuslib.api.nomenclature.Formula;
 
 import java.lang.reflect.Type;
 
 public class Compound extends Chemical{
-    public final Formula FORMULA;
 
-    private final ChemicalItem ITEM = new ChemicalItem(this);
+    private Formula formula;
+    private final ChemicalItem ITEM;
 
     public Compound(String name, String description, String formula, MatterState matterState, Float molecularWeight, Boolean isRadioactive, Boolean isMetallic) {
-        this(name, description, Formula.fromString(formula), matterState, molecularWeight, isRadioactive, isMetallic);
+        super(name, description, matterState, molecularWeight, isRadioactive, isMetallic);
+        NucleusResourceReloaderEvents.RESOURCE_TYPE_LOADED.register((resourceReloader, type) -> {
+            if(type == Element.class) {
+                this.formula = Formula.of(formula);
+            }
+        });
+        ITEM = new ChemicalItem(this);
     }
 
     public Compound(String name, String description, Formula formula, MatterState matterState, Float molecularWeight, Boolean isRadioactive, Boolean isMetallic) {
         super(name, description, matterState, molecularWeight, isRadioactive, isMetallic);
-        this.FORMULA = formula;
+        this.formula = formula;
+        ITEM = new ChemicalItem(this);
     }
 
     public Compound(CompoundSettings settings) {
         this(settings.getName(), settings.getDescription(), settings.getFormula(), settings.getMatterState(), settings.getMolecularWeight(), settings.isRadioactive(), settings.isMetallic());
+    }
+
+    public Formula getFormula() {
+        return formula;
     }
 
     @Override
