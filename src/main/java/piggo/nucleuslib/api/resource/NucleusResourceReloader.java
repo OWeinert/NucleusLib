@@ -27,8 +27,11 @@ import java.util.function.Function;
 
 public final class NucleusResourceReloader<T extends Chemical> extends SinglePreparationResourceReloader<Map<Identifier, T>> implements IdentifiableResourceReloadListener {
 
-    public static final NucleusResourceReloader<Element> ELEMENTS_INSTANCE = new NucleusResourceReloader<>(Element.class);
-    public static final NucleusResourceReloader<Compound> COMPOUNDS_INSTANCE = new NucleusResourceReloader<>(Compound.class).withDependencies(new Identifier(NucleusLib.MODID, "elements"));
+    public static final NucleusResourceReloader<Element> ELEMENTS_INSTANCE = new NucleusResourceReloaderBuilder<>(Element.class)
+            .build();
+    public static final NucleusResourceReloader<Compound> COMPOUNDS_INSTANCE = new NucleusResourceReloaderBuilder<>(Compound.class)
+            .withDependencies(new Identifier(NucleusLib.MODID, "elements"))
+            .build();
 
     private final Gson GSON;
     public final String STARTING_DIRECTORY;
