@@ -13,6 +13,7 @@ import net.minecraft.resource.SinglePreparationResourceReloader;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.profiler.Profiler;
 import org.apache.commons.io.FilenameUtils;
+import org.jetbrains.annotations.Nullable;
 import piggo.nucleuslib.NucleusLib;
 import piggo.nucleuslib.api.chem.Chemical;
 import piggo.nucleuslib.api.chem.Compound;
@@ -21,29 +22,34 @@ import piggo.nucleuslib.mixin.SimpleRegistryAccessor;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Type;
 import java.util.*;
+import java.util.function.Function;
 
-public class NucleusResourceReloader<T extends Chemical> extends SinglePreparationResourceReloader<Map<Identifier, T>> implements IdentifiableResourceReloadListener {
+public final class NucleusResourceReloader<T extends Chemical> extends SinglePreparationResourceReloader<Map<Identifier, T>> implements IdentifiableResourceReloadListener {
 
     public static final NucleusResourceReloader<Element> ELEMENTS_INSTANCE = new NucleusResourceReloader<>(Element.class);
     public static final NucleusResourceReloader<Compound> COMPOUNDS_INSTANCE = new NucleusResourceReloader<>(Compound.class).withDependencies(new Identifier(NucleusLib.MODID, "elements"));
 
+    private final Gson GSON;
     public final String STARTING_DIRECTORY;
     public final Class<T> TYPE;
-
-    private final static GsonBuilder gsonBuilder = (new GsonBuilder())
-            .setPrettyPrinting()
-            .disableHtmlEscaping()
-            .registerTypeAdapter(Element.class, new Element.Deserializer())
-            .registerTypeAdapter(Compound.class, new Compound.Deserializer());
+    private final Collection<Identifier> FABRIC_DEPENDENCIES;
     private Map<Identifier, T> loadedData;
-    private Collection<Identifier> fabricDependencies;
     private boolean finished = false;
 
-    public NucleusResourceReloader(Class<T> type) {
+    public NucleusResourceReloader(Class<T> type, @Nullable Function<GsonBuilder, GsonBuilder> gsonBuilderInject, Collection<Identifier> fabricDependencies) {
         this.TYPE = type;
         STARTING_DIRECTORY = type.getSimpleName().toLowerCase() + "s";
+        GsonBuilder gsonBuilder = (new GsonBuilder())
+                .setPrettyPrinting()
+                .disableHtmlEscaping()
+                .registerTypeAdapter(Element.class, new Element.Deserializer())
+                .registerTypeAdapter(Compound.class, new Compound.Deserializer());
+        if(gsonBuilderInject != null) {
+            gsonBuilder = gsonBuilderInject.apply(gsonBuilder);
+        }
+        GSON = gsonBuilder.create();
+        FABRIC_DEPENDENCIES = fabricDependencies;
     }
 
     @Override
@@ -53,13 +59,11 @@ public class NucleusResourceReloader<T extends Chemical> extends SinglePreparati
 
     @Override
     public Collection<Identifier> getFabricDependencies() {
-        return fabricDependencies != null ? fabricDependencies : IdentifiableResourceReloadListener.super.getFabricDependencies();
+        return FABRIC_DEPENDENCIES != null ? FABRIC_DEPENDENCIES : IdentifiableResourceReloadListener.super.getFabricDependencies();
     }
 
     @Override
     protected Map<Identifier, T> prepare(ResourceManager manager, Profiler profiler) {
-        final Gson GSON = gsonBuilder.create();
-
         Map<Identifier, T> dataMap = new HashMap<>();
         Map<Identifier, List<Resource>> resources = manager.findAllResources(STARTING_DIRECTORY, id -> true);
 
@@ -103,15 +107,6 @@ public class NucleusResourceReloader<T extends Chemical> extends SinglePreparati
             CreateAndRegisterContent(entry.getValue(), FilenameUtils.getBaseName(entry.getKey().getPath()));
         }
         refreezeItemRegistry();
-    }
-
-    public static void AddJsonDeserializer(Type type, JsonDeserializer<?> deserializer) {
-        gsonBuilder.registerTypeAdapter(type, deserializer);
-    }
-
-    public NucleusResourceReloader<T> withDependencies(Identifier... fabricDependencies) {
-        this.fabricDependencies = Arrays.asList(fabricDependencies);
-        return this;
     }
 
     public boolean finished() {
