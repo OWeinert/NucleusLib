@@ -1,25 +1,20 @@
 package piggo.nucleuslib.api.chem.subatomic;
 
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonDeserializer;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParseException;
 import piggo.nucleuslib.api.chem.subatomic.orbitals.Orbital;
 import piggo.nucleuslib.api.chem.subatomic.orbitals.OrbitalIdentifier;
 
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 
 public class SubAtomicConfiguration {
 
-    private int protons;
-    private int neutrons;
-    private ArrayList<Orbital> orbitals;
+    private final int PROTONS;
+    private final int NEUTRONS;
+    private final ArrayList<Orbital> ORBITALS;
 
     public SubAtomicConfiguration(int protons, int neutrons, ArrayList<Orbital> orbitals) {
-        this.protons = protons;
-        this.neutrons = neutrons;
-        this.orbitals = orbitals;
+        this.PROTONS = protons;
+        this.NEUTRONS = neutrons;
+        this.ORBITALS = orbitals;
     }
 
     public SubAtomicConfiguration(int protons, int neutrons) {
@@ -27,13 +22,21 @@ public class SubAtomicConfiguration {
     }
 
     public void addOrbital(Orbital orbital) {
-        this.orbitals.add(orbital);
+        this.ORBITALS.add(orbital);
     }
 
     public Orbital getOrbital(OrbitalIdentifier identifier, int index) {
-        return orbitals.stream()
+        return ORBITALS.stream()
                 .filter(orbital -> orbital.getIdentifier() == identifier && orbital.getIndex() == index)
                 .findFirst()
                 .orElse(null);
+    }
+
+    public int getProtons() {
+        return PROTONS;
+    }
+
+    public int getNeutrons() {
+        return NEUTRONS;
     }
 }
