@@ -1,7 +1,5 @@
 package piggo.nucleuslib.api.chem;
 
-import piggo.nucleuslib.api.chem.subatomic.SubAtomicConfiguration;
-
 public class ElementSettings extends ChemicalSettings {
 
     private String symbol;
