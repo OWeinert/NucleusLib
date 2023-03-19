@@ -56,8 +56,8 @@ public class Element extends Chemical {
             JsonElement group = jsonObject.get("group");
             JsonElement period = jsonObject.get("period");
             JsonElement molecularWeight = jsonObject.get("molecularWeight");
-            JsonElement radioactive = jsonObject.get("Radioactive");
-            JsonElement metallic = jsonObject.get("Metallic");
+            JsonElement radioactive = jsonObject.get("radioactive");
+            JsonElement metallic = jsonObject.get("metallic");
 
             return new Element(
                     name == null ? "" : name.getAsString(),

@@ -39,8 +39,8 @@ public class Compound extends Chemical{
             JsonElement description = jsonObject.get("description");
             JsonElement matterState = jsonObject.get("matterState");
             JsonElement molecularWeight = jsonObject.get("molecularWeight");
-            JsonElement radioactive = jsonObject.get("Radioactive");
-            JsonElement metallic = jsonObject.get("Metallic");
+            JsonElement radioactive = jsonObject.get("radioactive");
+            JsonElement metallic = jsonObject.get("metallic");
 
             return new Compound(
                     name == null ? "" : name.getAsString(),
